@@ -177,12 +177,10 @@ class TestGamesRoutes(unittest.TestCase):
         
         # Act
         response = self.client.get(f'{self.GAMES_API_PATH}?category_id={category_id}')
-
         data = self._get_response_data(response)
         
         # Assert
         self.assertEqual(response.status_code, 200)
-
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['category']['id'], category_id)
     
@@ -221,8 +219,6 @@ class TestGamesRoutes(unittest.TestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['category']['id'], category_id)
         self.assertEqual(data[0]['publisher']['id'], publisher_id)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(data['error'], "Category not found")
           
     def test_delete_game_success(self) -> None:
         """Test successful deletion of an existing game"""
@@ -395,7 +391,10 @@ class TestGamesRoutes(unittest.TestCase):
             data=json.dumps(update_data),
             content_type='application/json'
         )
-
+        data = self._get_response_data(response)
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(data['title'], update_data['title'])
         self.assertEqual(data['starRating'], update_data['star_rating'])
         
@@ -474,6 +473,12 @@ class TestGamesRoutes(unittest.TestCase):
             f'{self.GAMES_API_PATH}/{game_id}',
             data=json.dumps(update_data),
             content_type='application/json'
+        )
+        data = self._get_response_data(response)
+        
+        # Assert
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(data['error'], "Category not found")
 
 if __name__ == '__main__':
     unittest.main()
