@@ -1,16 +1,17 @@
 import unittest
 import json
-from typing import Any
-from flask import Flask, Response
+from flask import Flask
 from models import Publisher, db, init_db
 from routes.publishers import publishers_bp
 
 class TestPublishersRoutes(unittest.TestCase):
+    # Test data
     TEST_PUBLISHERS = [
         {"name": "DevGames Inc"},
         {"name": "Scrum Masters"}
     ]
     
+    # API paths
     PUBLISHERS_API_PATH = '/api/publishers'
 
     def setUp(self) -> None:
@@ -38,18 +39,14 @@ class TestPublishersRoutes(unittest.TestCase):
 
     def _seed_test_data(self) -> None:
         """Helper method to seed test data"""
-        publishers = [Publisher(**p) for p in self.TEST_PUBLISHERS]
+        publishers = [Publisher(**data) for data in self.TEST_PUBLISHERS]
         db.session.add_all(publishers)
         db.session.commit()
-
-    def _get_response_data(self, response: Response) -> Any:
-        """Helper method to parse response data"""
-        return json.loads(response.data)
 
     def test_get_publishers_success(self) -> None:
         """Test successful retrieval of publishers"""
         response = self.client.get(self.PUBLISHERS_API_PATH)
-        data = self._get_response_data(response)
+        data = json.loads(response.data)
         
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(data), len(self.TEST_PUBLISHERS))
@@ -57,3 +54,18 @@ class TestPublishersRoutes(unittest.TestCase):
         for i, publisher in enumerate(data):
             self.assertEqual(publisher['name'], self.TEST_PUBLISHERS[i]['name'])
             self.assertIn('id', publisher)
+
+    def test_get_publishers_structure(self) -> None:
+        """Test the response structure for publishers"""
+        response = self.client.get(self.PUBLISHERS_API_PATH)
+        data = json.loads(response.data)
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(data, list)
+        
+        required_fields = ['id', 'name']
+        for field in required_fields:
+            self.assertIn(field, data[0])
+
+if __name__ == '__main__':
+    unittest.main()
