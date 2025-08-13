@@ -10,7 +10,14 @@ FLASK_DEBUG=1 FLASK_PORT=5100 python3 app.py &
 FLASK_PID=$!
 
 # Start Astro server
-cd /workspaces/agents-in-the-sdlc/client
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/../server"
+source ../venv/bin/activate
+FLASK_DEBUG=1 FLASK_PORT=5100 python3 app.py &
+FLASK_PID=$!
+
+# Start Astro server
+cd "$SCRIPT_DIR/../client"
 npm run dev -- --no-clearScreen --host --port 4321 &
 ASTRO_PID=$!
 
