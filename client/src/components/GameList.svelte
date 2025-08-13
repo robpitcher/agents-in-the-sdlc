@@ -49,6 +49,10 @@
         return params.toString();
     };
 
+    /**
+     * Fetch games data from the API endpoint.
+     * Updates the games array and handles loading/error states.
+     */
     const fetchGames = async () => {
         loading = true;
         try {
