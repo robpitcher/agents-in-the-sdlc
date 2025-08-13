@@ -168,6 +168,87 @@ class TestGamesRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(data['error'], "Game not found")
 
+    def test_get_games_filter_by_category(self) -> None:
+        """Test filtering games by category"""
+        # Get the first game to get its category ID
+        response = self.client.get(self.GAMES_API_PATH)
+        games = self._get_response_data(response)
+        category_id = games[0]['category']['id']
+        
+        # Act
+        response = self.client.get(f'{self.GAMES_API_PATH}?category_id={category_id}')
+        data = self._get_response_data(response)
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['category']['id'], category_id)
+    
+    def test_get_games_filter_by_publisher(self) -> None:
+        """Test filtering games by publisher"""
+        # Get the first game to get its publisher ID
+        response = self.client.get(self.GAMES_API_PATH)
+        games = self._get_response_data(response)
+        publisher_id = games[0]['publisher']['id']
+        
+        # Act
+        response = self.client.get(f'{self.GAMES_API_PATH}?publisher_id={publisher_id}')
+        data = self._get_response_data(response)
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['publisher']['id'], publisher_id)
+    
+    def test_get_games_filter_combined(self) -> None:
+        """Test filtering games by both category and publisher"""
+        # Get the first game to get its category and publisher IDs
+        response = self.client.get(self.GAMES_API_PATH)
+        games = self._get_response_data(response)
+        category_id = games[0]['category']['id']
+        publisher_id = games[0]['publisher']['id']
+        
+        # Act
+        response = self.client.get(
+            f'{self.GAMES_API_PATH}?category_id={category_id}&publisher_id={publisher_id}'
+        )
+        data = self._get_response_data(response)
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['category']['id'], category_id)
+        self.assertEqual(data[0]['publisher']['id'], publisher_id)
+          
+    def test_delete_game_success(self) -> None:
+        """Test successful deletion of an existing game"""
+        # Get the first game's ID
+        response = self.client.get(self.GAMES_API_PATH)
+        games = self._get_response_data(response)
+        game_id = games[0]['id']
+        
+        # Act
+        response = self.client.delete(f'{self.GAMES_API_PATH}/{game_id}')
+        data = self._get_response_data(response)
+        
+        # Assert
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data['message'], "Game deleted successfully")
+        
+        # Verify game is actually deleted
+        verify_response = self.client.get(f'{self.GAMES_API_PATH}/{game_id}')
+        self.assertEqual(verify_response.status_code, 404)
+        
+    def test_delete_game_not_found(self) -> None:
+        """Test deletion of a non-existent game"""
+        # Act
+        response = self.client.delete(f'{self.GAMES_API_PATH}/999')
+        data = self._get_response_data(response)
+        
+        # Assert
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(data['error'], "Game not found")
+          
     def test_create_game_success(self) -> None:
         """Test successful creation of a new game"""
         # Arrange
@@ -398,35 +479,6 @@ class TestGamesRoutes(unittest.TestCase):
         # Assert
         self.assertEqual(response.status_code, 400)
         self.assertEqual(data['error'], "Category not found")
-        
-    def test_delete_game_success(self) -> None:
-        """Test successful deletion of an existing game"""
-        # Get the first game's ID
-        response = self.client.get(self.GAMES_API_PATH)
-        games = self._get_response_data(response)
-        game_id = games[0]['id']
-        
-        # Act
-        response = self.client.delete(f'{self.GAMES_API_PATH}/{game_id}')
-        data = self._get_response_data(response)
-        
-        # Assert
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(data['message'], "Game deleted successfully")
-        
-        # Verify game is actually deleted
-        verify_response = self.client.get(f'{self.GAMES_API_PATH}/{game_id}')
-        self.assertEqual(verify_response.status_code, 404)
-        
-    def test_delete_game_not_found(self) -> None:
-        """Test deletion of a non-existent game"""
-        # Act
-        response = self.client.delete(f'{self.GAMES_API_PATH}/999')
-        data = self._get_response_data(response)
-        
-        # Assert
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(data['error'], "Game not found")
 
 if __name__ == '__main__':
     unittest.main()

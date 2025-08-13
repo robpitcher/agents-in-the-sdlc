@@ -27,15 +27,29 @@ def get_games_base_query() -> Query:
 def get_games() -> Response:
     """
     Get all games with their publisher and category information.
+    Supports filtering by category_id and publisher_id through query parameters.
     
     Returns:
         Response: JSON response containing a list of all games with their details
     """
     # Use the base query for all games
-    games_query = get_games_base_query().all()
     
-    # Convert the results using the model's to_dict method
-    games_list = [game.to_dict() for game in games_query]
+    
+    # Start with base query
+    games_query = get_games_base_query()
+    
+    # Apply category filter if provided
+    category_id = request.args.get('category_id', type=int)
+    if category_id is not None:
+        games_query = games_query.filter(Game.category_id == category_id)
+    
+    # Apply publisher filter if provided
+    publisher_id = request.args.get('publisher_id', type=int)
+    if publisher_id is not None:
+        games_query = games_query.filter(Game.publisher_id == publisher_id)
+    
+    # Execute query and convert results
+    games_list = [game.to_dict() for game in games_query.all()]
     
     return jsonify(games_list)
 
