@@ -25,6 +25,7 @@ def get_games() -> Response:
     """
     from flask import request
     
+    
     # Start with base query
     games_query = get_games_base_query()
     
