@@ -5,20 +5,59 @@
         id: number;
         title: string;
         description: string;
-        publisher_name?: string;
-        category_name?: string;
+        publisher: { id: number; name: string };
+        category: { id: number; name: string };
+    }
+
+    interface FilterOption {
+        id: number;
+        name: string;
     }
 
     export let games: Game[] = [];
     let loading = true;
     let error: string | null = null;
+    let categories: FilterOption[] = [];
+    let publishers: FilterOption[] = [];
+    
+    // Filter states
+    let selectedCategoryId: string = '';
+    let selectedPublisherId: string = '';
+
+    const fetchFilters = async () => {
+        // Extract unique categories and publishers from games
+        const uniqueCategories = new Map();
+        const uniquePublishers = new Map();
+        
+        games.forEach(game => {
+            if (game.category) {
+                uniqueCategories.set(game.category.id, game.category);
+            }
+            if (game.publisher) {
+                uniquePublishers.set(game.publisher.id, game.publisher);
+            }
+        });
+
+        categories = Array.from(uniqueCategories.values());
+        publishers = Array.from(uniquePublishers.values());
+    };
+
+    const buildQueryString = () => {
+        const params = new URLSearchParams();
+        if (selectedCategoryId) params.append('category_id', selectedCategoryId);
+        if (selectedPublisherId) params.append('publisher_id', selectedPublisherId);
+        return params.toString();
+    };
 
     const fetchGames = async () => {
         loading = true;
         try {
-            const response = await fetch('/api/games');
+            const queryString = buildQueryString();
+            const url = `/api/games${queryString ? `?${queryString}` : ''}`;
+            const response = await fetch(url);
             if(response.ok) {
                 games = await response.json();
+                await fetchFilters();
             } else {
                 error = `Failed to fetch data: ${response.status} ${response.statusText}`;
             }
@@ -29,13 +68,45 @@
         }
     };
 
+    const handleFilterChange = () => {
+        fetchGames();
+    };
+
     onMount(() => {
         fetchGames();
     });
 </script>
 
 <div>
-    <h2 class="text-2xl font-medium mb-6 text-slate-100">Featured Games</h2>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+        <h2 class="text-2xl font-medium text-slate-100 mb-4 sm:mb-0">Featured Games</h2>
+        
+        <div class="flex flex-wrap gap-4 w-full sm:w-auto">
+            <select
+                bind:value={selectedCategoryId}
+                on:change={handleFilterChange}
+                class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                data-testid="category-filter"
+            >
+                <option value="">All Categories</option>
+                {#each categories as category}
+                    <option value={category.id}>{category.name}</option>
+                {/each}
+            </select>
+
+            <select
+                bind:value={selectedPublisherId}
+                on:change={handleFilterChange}
+                class="bg-slate-800 text-slate-200 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                data-testid="publisher-filter"
+            >
+                <option value="">All Publishers</option>
+                {#each publishers as publisher}
+                    <option value={publisher.id}>{publisher.name}</option>
+                {/each}
+            </select>
+        </div>
+    </div>
     
     {#if loading}
         <!-- loading animation -->
@@ -81,16 +152,16 @@
                         <div class="relative z-10">
                             <h3 class="text-xl font-semibold text-slate-100 mb-2 group-hover:text-blue-400 transition-colors" data-testid="game-title">{game.title}</h3>
                             
-                            {#if game.category_name || game.publisher_name}
+                            {#if game.category || game.publisher}
                                 <div class="flex gap-2 mb-3">
-                                    {#if game.category_name}
+                                    {#if game.category}
                                         <span class="text-xs font-medium px-2.5 py-0.5 rounded bg-blue-900/60 text-blue-300" data-testid="game-category">
-                                            {game.category_name}
+                                            {game.category.name}
                                         </span>
                                     {/if}
-                                    {#if game.publisher_name}
+                                    {#if game.publisher}
                                         <span class="text-xs font-medium px-2.5 py-0.5 rounded bg-purple-900/60 text-purple-300" data-testid="game-publisher">
-                                            {game.publisher_name}
+                                            {game.publisher.name}
                                         </span>
                                     {/if}
                                 </div>

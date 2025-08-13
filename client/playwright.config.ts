@@ -42,9 +42,9 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: '../scripts/start-app.sh',
+    command: '../scripts/start-test-servers.sh',
     url: 'http://localhost:4321',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 2 minutes to allow for setup
+    reuseExistingServer: true,
+    timeout: 30 * 1000, // 30 seconds
   },
 });
