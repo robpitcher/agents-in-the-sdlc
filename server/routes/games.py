@@ -27,17 +27,12 @@ def get_games_base_query() -> Query:
 def get_games() -> Response:
     """
     Get all games with their publisher and category information.
+    Supports filtering by category_id and publisher_id through query parameters.
     
     Returns:
         Response: JSON response containing a list of all games with their details
     """
     # Use the base query for all games
-    games_query = get_games_base_query().all()
-    
-    Returns:
-        Response: JSON list of games matching the filter criteria
-    """
-    from flask import request
     
     
     # Start with base query
